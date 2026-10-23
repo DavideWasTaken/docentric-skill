@@ -43,17 +43,21 @@ The skill gives Claude the format knowledge **and a tested tool** (one JavaScrip
 column to a real 14-column customer purchase order (not published) — each run by fresh Claude agents with and without
 the skill, outputs checked with the validator and a structural check:
 
-| | With the skill | Without |
+| Request | With the skill | Without |
 |---|---|---|
+| Add a column to the example invoice | **41 s** · 75 k tokens | 138 s · 101 k tokens |
+| Add a field that is not in the data | 47 s · 75 k | 33 s · 70 k |
+| Create a delivery note from the invoice data | **68 s** · 84 k | 181 s · 114 k |
+| Add a column to a real 14-column purchase order | **78 s** · 92 k · 12 tool calls | 290 s · 123 k · 30 tool calls |
 | Correct, valid templates | 4 / 4 | 4 / 4 |
-| Average time | **86 s** | 161 s |
-| Average tokens | **85 k** | 102 k |
 
 The honest reading: a frontier model *can* do these edits on its own — it reverse-engineers the format and writes a
-throwaway script for every request. With the skill it is about **twice as fast and cheaper**, and the work is
+throwaway script for every request. With the skill it is **two to four times faster** and cheaper, and the work is
 **repeatable**: the same tested code every time instead of a new script, validation with did-you-mean suggestions, a
-real multi-page preview, and the parts nobody improvises — SSRS conversion and the D365 field/DDSP workflow. The test
-cases live in [`skills/docentric/evals`](skills/docentric/evals).
+real multi-page preview, and the parts nobody improvises — SSRS conversion and the D365 field/DDSP workflow. Running
+these tests also improved the skill: the first run on the real template showed that `add_column` squeezed every
+column and that previews stopped at page 1; both were fixed, and the agent no longer falls back to editing XML by
+hand. The test cases live in [`skills/docentric/evals`](skills/docentric/evals).
 
 ## What Claude can do with it
 
