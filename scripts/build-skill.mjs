@@ -1,6 +1,6 @@
 // Bundles src/ into skills/docentric/scripts/docentric.mjs: one file, no install, Node 18+.
 // Also writes the licences of the bundled libraries next to it. Run: npm run build
-import { readFile, writeFile } from 'node:fs/promises';
+import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { build } from 'esbuild';
 
@@ -35,11 +35,9 @@ let notices = '# Third-party notices\n\n`docentric.mjs` bundles these packages:\
 for (const name of [...packages].sort()) {
   const dir = join('node_modules', name);
   const meta = JSON.parse(await readFile(join(dir, 'package.json'), 'utf8'));
-  let text = '';
-  for (const f of ['LICENSE', 'LICENSE.md', 'LICENSE.txt', 'license', 'LICENSE-MIT']) {
-    text = await readFile(join(dir, f), 'utf8').catch(() => '');
-    if (text) break;
-  }
+  // Case-insensitive on every OS, so the notices are identical when built on Windows or Linux.
+  const licenceFile = (await readdir(dir)).filter((f) => /^licen[cs]e/i.test(f)).sort()[0];
+  const text = licenceFile ? (await readFile(join(dir, licenceFile), 'utf8')).replace(/\r\n/g, '\n') : '';
   notices += `\n## ${name} ${meta.version} (${meta.license ?? 'see licence'})\n\n${text.trim() ? `\`\`\`\n${text.trim()}\n\`\`\`` : '(no licence file shipped)'}\n`;
 }
 await writeFile('skills/docentric/scripts/THIRD_PARTY_NOTICES.md', notices);

@@ -37,7 +37,7 @@ template labels mixed with cached D365 labels. Hand edits easily produce files t
 Docentric Designer or at print time — a table row whose cells no longer match the grid, an element missing from the
 registry, a binding to a field that does not exist.
 
-The skill gives Claude the format knowledge **and a tested tool** (one JavaScript file, 119 tests behind it).
+The skill gives Claude the format knowledge **and a tested tool** (one JavaScript file, 121 tests behind it).
 
 **We measured it.** Four requests — add a column, add a field that does not exist, create a delivery note, and add a
 column to a real 14-column customer purchase order (not published) — each run by fresh Claude agents with and without
@@ -66,7 +66,7 @@ hand. The test cases live in [`skills/docentric/evals`](skills/docentric/evals).
 | 🔍 **Inspect** | Report, DSP class, languages, data sources, every element with its binding and data context, the schema's field tree. |
 | ✅ **Validate** | 19 offline rules: bindings vs the schema with did-you-mean, orphaned controls, missing/untranslated labels, variables, provisional schemas. |
 | 👁️ **Preview** | Fills the template with its sample data — lists repeat, conditions apply, totals and variables compute, labels per language — and renders PNG/PDF/HTML. Claude looks at it. |
-| ✏️ **Edit** | Insert blocks, add a table column, change bindings, show/hide on conditions, remove, labels and languages, or turn `{{placeholders}}` typed in Word into real fields. Always to a new file; refuses to save new errors. |
+| ✏️ **Edit** | Insert paragraphs, tables and conditional sections; add, resize or remove table columns; format text; change bindings; show/hide on conditions; labels and languages; or turn `{{placeholders}}` typed in Word into real fields. Always to a new file; refuses to save new errors. |
 | 🧱 **Create** | New templates from a layout spec: headings, side-by-side blocks, data tables with totals, conditional sections, images, header/footer, multilingual labels, your corporate styles. |
 | 🔁 **Convert SSRS** | AxReport → layout spec + template: Tablix → data tables, `=Fields!X.Value` → `{{@X}}`, `First()`, `Sum()`, `Format()`, parameters, labels, images. What it cannot translate is marked and listed. |
 
@@ -161,7 +161,7 @@ calls and only writes new files. Everything in this repository is synthetic; ple
 skills/docentric/            the skill: SKILL.md, references/, scripts/docentric.mjs (generated), evals/
 .claude-plugin/              Claude Code plugin + marketplace manifests
 src/                         the TypeScript sources of the tool
-tests/                       119 tests on synthetic templates
+tests/                       121 tests on synthetic templates
 examples/                    a layout spec, a generated template, edit operations, an SSRS report
 docs/                        testing from scratch, screenshots
 ```

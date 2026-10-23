@@ -43,6 +43,8 @@ describe('SKILL.md', () => {
       'set_label',
       'add_language',
       'resize_column',
+      'remove_column',
+      'set_style',
       'convert_placeholders',
     ]) {
       expect(ops).toContain(`\`${op}\``);

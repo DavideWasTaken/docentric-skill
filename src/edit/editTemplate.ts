@@ -88,6 +88,23 @@ export const EditOp = z.discriminatedUnion('op', [
       widthCm: z.number().min(0.3).max(30),
     })
     .strict(),
+  z.object({ op: z.literal('remove_column'), element: ElementRef }).strict(),
+  z
+    .object({
+      op: z.literal('set_style'),
+      anchor: Anchor,
+      bold: z.boolean().optional(),
+      italic: z.boolean().optional(),
+      underline: z.boolean().optional(),
+      caps: z.boolean().optional(),
+      size: z.number().min(4).max(96).optional(),
+      color: z
+        .string()
+        .regex(/^#?[0-9A-Fa-f]{6}$/)
+        .optional(),
+      align: z.enum(['left', 'center', 'right', 'justify']).optional(),
+    })
+    .strict(),
   z
     .object({
       op: z.literal('add_language'),
@@ -223,6 +240,10 @@ class EditSession {
         return this.addLanguage(op);
       case 'resize_column':
         return this.resizeColumn(op);
+      case 'remove_column':
+        return this.removeColumn(op);
+      case 'set_style':
+        return this.setStyle(op);
     }
   }
 
@@ -594,6 +615,135 @@ class EditSession {
     };
   }
 
+  // --- remove_column -----------------------------------------------------------------
+
+  /**
+   * Removes the table column holding `element`: its cell in every row (with every Docentric
+   * element inside, from the registry too), its grid columns; cells spanning across it shrink.
+   * The freed width is spread over the remaining columns, so the table keeps its width.
+   */
+  private removeColumn(op: Extract<EditOp, { op: 'remove_column' }>): AppliedOp {
+    const { sdt } = this.locate(op.element);
+    const tc =
+      sdtLevel(sdt) === 'cell'
+        ? (children(child(sdt, 'sdtContent') as Element, 'tc')[0] as Element)
+        : ancestor(sdt, 'tc');
+    if (!tc) throw new EditError(`element ${op.element} is not in a table cell`);
+    const tbl = ancestor(ancestor(tc, 'tr') as Element, 'tbl') as Element;
+    const start = cellGridStart(ancestor(tc, 'tr') as Element, tc);
+    const span = cellSpan(tc);
+    const end = start + span;
+
+    const removedIds = new Set<string>();
+    let cells = 0;
+    for (const tr of tableRows(tbl)) {
+      let col = 0;
+      for (const { unit, tc: cell } of cellUnits(tr)) {
+        const s = col;
+        const n = cellSpan(cell);
+        col += n;
+        const overlap = Math.min(s + n, end) - Math.max(s, start);
+        if (overlap <= 0) continue;
+        if (s >= start && s + n <= end) {
+          // The cell lies inside the column: it goes, with its elements.
+          for (const id of [...topLevelElementIds(unit)]) for (const r of this.registry.remove(id)) removedIds.add(r);
+          unit.parentNode?.removeChild(unit);
+          cells++;
+        } else {
+          setSpan(cell, n - overlap);
+        }
+      }
+    }
+
+    const grid = child(tbl, 'tblGrid') as Element;
+    const cols = children(grid, 'gridCol');
+    const freed = cols.slice(start, end).reduce((n, c) => n + Number(c.getAttributeNS(NS.w, 'w') || 0), 0);
+    for (const c of cols.slice(start, end)) grid.removeChild(c);
+    // The freed width is spread over the remaining columns in proportion to their width, as Word does.
+    const rest = children(grid, 'gridCol');
+    const restWidths = rest.map((c) => Number(c.getAttributeNS(NS.w, 'w') || 0));
+    const restTotal = restWidths.reduce((a, b) => a + b, 0) || 1;
+    let given = 0;
+    rest.forEach((c, i) => {
+      const extra = i === rest.length - 1 ? freed - given : Math.round(((restWidths[i] as number) / restTotal) * freed);
+      given += extra;
+      c.setAttributeNS(NS.w, 'w:w', String((restWidths[i] as number) + extra));
+    });
+    syncCellWidths(tbl);
+    return {
+      op: 'remove_column',
+      detail: `removed ${cells} cell(s) and ${removedIds.size} element(s) (${[...removedIds].map((i) => `#${i}`).join(', ')}); ${twipsToCm(freed)} cm spread over the other columns`,
+      newElements: [],
+    };
+  }
+
+  // --- set_style ---------------------------------------------------------------------
+
+  /** Formats the runs of an element (or of a paragraph found by its text): bold, size, colour, alignment… */
+  private setStyle(op: Extract<EditOp, { op: 'set_style' }>): AppliedOp {
+    let target: Element;
+    if ('element' in op.anchor) {
+      const { sdt } = this.locate(op.anchor.element);
+      target = sdtLevel(sdt) === 'run' && op.align ? (ancestor(sdt, 'p') as Element) : sdt;
+    } else {
+      const found = this.findParagraph(op.anchor.text);
+      if (!found) throw new EditError(`no paragraph contains "${op.anchor.text}"`);
+      target = found.p;
+    }
+    const doc = target.ownerDocument as Document;
+    const runs = Array.from(target.getElementsByTagNameNS(NS.w, 'r'));
+    // The content control's own rPr formats the text the Designer shows while editing.
+    const sdtPrs = localName(target) === 'sdt' ? [child(target, 'sdtPr') as Element] : [];
+    const applied: string[] = [];
+    const changes: Array<[string, Record<string, string> | undefined]> = [
+      ['b', op.bold === undefined ? undefined : op.bold ? {} : { 'w:val': '0' }],
+      ['bCs', op.bold === undefined ? undefined : op.bold ? {} : { 'w:val': '0' }],
+      ['i', op.italic === undefined ? undefined : op.italic ? {} : { 'w:val': '0' }],
+      ['iCs', op.italic === undefined ? undefined : op.italic ? {} : { 'w:val': '0' }],
+      ['caps', op.caps === undefined ? undefined : op.caps ? {} : { 'w:val': '0' }],
+      ['color', op.color ? { 'w:val': op.color.replace('#', '').toUpperCase() } : undefined],
+      ['sz', op.size ? { 'w:val': String(Math.round(op.size * 2)) } : undefined],
+      ['szCs', op.size ? { 'w:val': String(Math.round(op.size * 2)) } : undefined],
+      ['u', op.underline === undefined ? undefined : { 'w:val': op.underline ? 'single' : 'none' }],
+    ];
+    for (const r of runs) {
+      let rPr = child(r, 'rPr');
+      if (!rPr) {
+        rPr = doc.createElementNS(NS.w, 'w:rPr');
+        r.insertBefore(rPr, r.firstChild);
+      }
+      for (const [name, attrs] of changes) if (attrs !== undefined) setOrdered(rPr, name, attrs, RPR_ORDER);
+    }
+    for (const pr of sdtPrs) {
+      let rPr = child(pr, 'rPr');
+      if (!rPr) {
+        rPr = doc.createElementNS(NS.w, 'w:rPr');
+        pr.insertBefore(rPr, pr.firstChild);
+      }
+      for (const [name, attrs] of changes) if (attrs !== undefined) setOrdered(rPr, name, attrs, RPR_ORDER);
+    }
+    for (const [name, attrs] of changes) if (attrs !== undefined && !name.endsWith('Cs')) applied.push(name);
+    if (op.align) {
+      const paragraphs = localName(target) === 'p' ? [target] : Array.from(target.getElementsByTagNameNS(NS.w, 'p'));
+      for (const p of paragraphs) {
+        let pPr = child(p, 'pPr');
+        if (!pPr) {
+          pPr = doc.createElementNS(NS.w, 'w:pPr');
+          p.insertBefore(pPr, p.firstChild);
+        }
+        setOrdered(pPr, 'jc', { 'w:val': op.align === 'justify' ? 'both' : op.align }, PPR_ORDER);
+      }
+      applied.push(`align=${op.align}`);
+    }
+    if (!applied.length)
+      throw new EditError('set_style needs at least one of bold, italic, underline, caps, size, color, align');
+    return {
+      op: 'set_style',
+      detail: `${applied.join(', ')} on ${runs.length} run(s) of ${'element' in op.anchor ? `#${op.anchor.element}` : `"${op.anchor.text}"`}`,
+      newElements: [],
+    };
+  }
+
   // --- languages ---------------------------------------------------------------------
 
   private addLanguage(op: Extract<EditOp, { op: 'add_language' }>): AppliedOp {
@@ -750,6 +900,99 @@ export function resizeSpan(widths: number[], start: number, span: number, target
   const widestOther = others.indexOf(Math.max(...others));
   out[widestOther] = (out[widestOther] as number) + diff;
   return out;
+}
+
+/** Child order of w:rPr and w:pPr in the WordprocessingML schema; Word rejects out-of-order properties. */
+const RPR_ORDER = [
+  'rStyle',
+  'rFonts',
+  'b',
+  'bCs',
+  'i',
+  'iCs',
+  'caps',
+  'smallCaps',
+  'strike',
+  'dstrike',
+  'outline',
+  'shadow',
+  'emboss',
+  'imprint',
+  'noProof',
+  'snapToGrid',
+  'vanish',
+  'webHidden',
+  'color',
+  'spacing',
+  'w',
+  'kern',
+  'position',
+  'sz',
+  'szCs',
+  'highlight',
+  'u',
+  'effect',
+  'bdr',
+  'shd',
+  'fitText',
+  'vertAlign',
+  'rtl',
+  'cs',
+  'em',
+  'lang',
+  'eastAsianLayout',
+  'specVanish',
+  'oMath',
+];
+const PPR_ORDER = [
+  'pStyle',
+  'keepNext',
+  'keepLines',
+  'pageBreakBefore',
+  'framePr',
+  'widowControl',
+  'numPr',
+  'suppressLineNumbers',
+  'pBdr',
+  'shd',
+  'tabs',
+  'suppressAutoHyphens',
+  'kinsoku',
+  'wordWrap',
+  'overflowPunct',
+  'topLinePunct',
+  'autoSpaceDE',
+  'autoSpaceDN',
+  'bidi',
+  'adjustRightInd',
+  'snapToGrid',
+  'spacing',
+  'ind',
+  'contextualSpacing',
+  'mirrorIndents',
+  'suppressOverlap',
+  'jc',
+  'textDirection',
+  'textAlignment',
+  'textboxTightWrap',
+  'outlineLvl',
+  'divId',
+  'cnfStyle',
+  'rPr',
+  'sectPr',
+  'pPrChange',
+];
+
+/** Sets (replaces) the property `name` in a w:rPr / w:pPr, at its schema position. */
+function setOrdered(props: Element, name: string, attrs: Record<string, string>, order: string[]): void {
+  const doc = props.ownerDocument as Document;
+  const old = child(props, name);
+  if (old) props.removeChild(old);
+  const el = doc.createElementNS(NS.w, `w:${name}`);
+  for (const [k, v] of Object.entries(attrs)) el.setAttributeNS(NS.w, k, v);
+  const rank = order.indexOf(name);
+  const before = children(props).find((c) => order.indexOf(localName(c)) > rank) ?? null;
+  props.insertBefore(el, before);
 }
 
 /** Every cell's w:tcW recomputed from the grid columns it spans. */

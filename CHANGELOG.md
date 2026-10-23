@@ -9,7 +9,7 @@ skill that Claude Code, claude.ai and Claude Desktop load on demand, with no ser
   layout spec, validation rules, D365 workflows, the package format) and `scripts/docentric.mjs`, the whole tool in
   one file for Node.js 18+.
 - Claude Code plugin + marketplace (`/plugin marketplace add DavideWasTaken/docentric-skill`), zip for claude.ai.
-- New edit operations `add_language` and `resize_column`; `add_column` takes an exact `widthCm`; `create` and `edit`
+- New edit operations `add_language`, `resize_column`, `remove_column` and `set_style`; `add_column` takes an exact `widthCm`; `create` and `edit`
   read the spec/operations from stdin with `-`.
 - Found by running the skill against real templates: `add_column` now takes the space from the widest column first
   (it used to shrink every column and make headers wrap); previews follow the page size and orientation and produce

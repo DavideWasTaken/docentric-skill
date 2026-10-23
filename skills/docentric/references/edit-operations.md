@@ -19,6 +19,8 @@ Element ids come from `inspect` (`#1200000001` or `1200000001`). Ops can also be
 | `set_label` | `code` (with or without `@DOC_LABEL:`), `texts` {language: text} | Adds a template label or updates its texts. |
 | `add_language` | `language`, `default`? | Adds a template language (then add its texts with `set_label`; `validate` lists the labels still missing it). |
 | `resize_column` | `element` (any element in that column), `widthCm` | Sets the width of a table column in cm — e.g. so item codes stop wrapping. The table keeps its width: extra space comes from the wide columns, freed space goes to the widest one. Use it instead of editing `w:tblGrid` by hand. |
+| `remove_column` | `element` (any element in that column) | Removes a table column: its cell in every row (header, data, totals), the elements inside them, the grid column. Cells spanning across it shrink; the freed width is spread over the other columns in proportion. |
+| `set_style` | `anchor` ({element} or {text}), `bold`?, `italic`?, `underline`?, `caps`?, `size`? (pt), `color`? (RRGGBB), `align`? | Formats an element or a paragraph: runs, the content control (what the Designer shows) and, with `align`, its paragraphs. |
 | `convert_placeholders` | — | Turns `{{…}}` typed directly in Word into real Docentric elements (see `layout-spec.md` for the syntax). Paragraphs with fields, links or drawings are skipped and reported. |
 
 ## Placeholders in values and blocks

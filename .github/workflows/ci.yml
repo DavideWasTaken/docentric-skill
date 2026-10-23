@@ -11,10 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node: [18, 22, 24]
-        exclude:
-          - os: windows-latest
-            node: 18
+        node: [22, 24]
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -32,10 +29,31 @@ jobs:
           npm run build
           git diff --exit-code -- skills/docentric/scripts
       - run: npm run test:run
-      - name: Skill script smoke test (no node_modules needed)
-        run: |
-          node skills/docentric/scripts/docentric.mjs doctor
-          node skills/docentric/scripts/docentric.mjs validate examples/SalesInvoice.docx
-          node skills/docentric/scripts/docentric.mjs preview examples/SalesInvoice.docx --out out --formats html,docx
-          node skills/docentric/scripts/docentric.mjs convert-ssrs examples/ssrs/ConInvoice.AxReport.xml out/ConInvoice.docx
       - run: npm run package
+
+  # The skill's script must run where Claude runs it: no npm install, oldest supported Node.
+  skill-script:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [18, 20]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run every command of the bundled script
+        shell: bash
+        run: |
+          s=skills/docentric/scripts/docentric.mjs
+          node $s --version
+          node $s doctor
+          node $s inspect examples/SalesInvoice.docx --schema > /dev/null
+          node $s validate examples/SalesInvoice.docx
+          node $s preview examples/SalesInvoice.docx --out out --formats html,docx
+          node $s edit examples/SalesInvoice.docx examples/SalesInvoice.edit.yaml --out out/Edited.docx
+          node $s create examples/sales-invoice.yaml out/Created.docx
+          node $s convert-ssrs examples/ssrs/ConInvoice.AxReport.xml out/ConInvoice.docx
+          node $s dump out/Edited.docx > /dev/null

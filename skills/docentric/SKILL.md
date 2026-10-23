@@ -29,7 +29,7 @@ OpenJS.NodeJS.LTS`, else nodejs.org) rather than working around it.
 | `inspect <t.docx> [--schema] [--labels] [--source MainData] [--depth N]` | See the report, DSP class, languages, data sources and the element tree: ids, bindings, and the **data context** of each (`.(ReportData/PurchOrderLines)` = relative to the current row). `--schema` lists every available field. |
 | `validate <t.docx> [--json] [--min error]` | Offline checks DCX001–DCX019 (bindings vs schema with did-you-mean, orphans, labels, variables). Exit code 1 on errors. |
 | `preview <t.docx> --formats png,pdf [--lang it] [--out dir]` | Fill the template with its sample data and write `<name>.preview.pdf/.html/.docx` and one PNG per page (`.preview.png`, `.preview.p2.png`, …). |
-| `edit <t.docx> <ops.yaml\|-> [--out new.docx] [--dry-run] [--preview]` | Change a template: insert blocks, add or resize a table column, change a binding, wrap in a condition, remove, labels, languages, convert `{{…}}` typed in Word. |
+| `edit <t.docx> <ops.yaml\|-> [--out new.docx] [--dry-run] [--preview]` | Change a template: insert blocks (paragraphs, tables, conditions…), add, resize or remove table columns, format text, change a binding, wrap in a condition, remove elements, labels, languages, convert `{{…}}` typed in Word. |
 | `create <spec.yaml\|-> <out.docx> [--preview]` | Build a new template from a layout spec. |
 | `convert-ssrs <AxReport.xml> <out.docx>` | SSRS report → `<out>.spec.yaml` + template, with notes on what was not converted. |
 | `doctor` | Which PDF/PNG converters are available (LibreOffice, Word, Edge/Chrome). |

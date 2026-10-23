@@ -91,6 +91,53 @@ describe('editTemplate', () => {
     expect(xml).toContain('<w:gridCol w:w="2268"/>');
   });
 
+  it('remove_column drops the cells of every row, their elements and the grid column', async () => {
+    const list = await listOf(invoice);
+    const nameField = list?.childIds[1] as string;
+    const r = await editTemplate(invoice, [{ op: 'remove_column', element: `#${nameField}` }], {
+      outputPath: out('no-description.docx'),
+    });
+    expect(r.newErrors).toEqual([]);
+    // Header and data cells go; the totals row's "Total" cell spans the column, so it shrinks instead.
+    expect(r.applied[0]?.detail).toMatch(/removed 2 cell\(s\)/);
+    const after = await listOf(out('no-description.docx'));
+    expect(after?.childIds).toHaveLength(4);
+    const t = await loadTemplateFile(out('no-description.docx'));
+    expect(t.elements.has(nameField)).toBe(false);
+    const filled = await fillTemplate(await readFile(out('no-description.docx')));
+    const xml = (await filled.pkg.text('word/document.xml')) as string;
+    expect(xml).not.toContain('Ergonomic office chair');
+    const grid =
+      /<w:tblGrid>(.*?)<\/w:tblGrid>/.exec(xml.slice(xml.lastIndexOf('<w:tbl>', xml.indexOf('A-1001'))))?.[1] ?? '';
+    expect((grid.match(/<w:gridCol /g) ?? []).length).toBe(4);
+    expect(xml).toContain('<w:gridSpan w:val="3"/>'); // the totals label now spans 3 columns, not 4
+  });
+
+  it('set_style formats an element and a paragraph found by text, in schema order', async () => {
+    const r = await editTemplate(
+      fixture,
+      [
+        { op: 'set_style', anchor: { element: '#102' }, bold: true, size: 14, color: '#c00000' },
+        { op: 'set_style', anchor: { text: 'InvoiceHeader/@CustName' }, italic: true, align: 'right' },
+      ],
+      { outputPath: out('styled.docx') },
+    );
+    expect(r.written).toBe(true);
+    const xml = (await (
+      await JSZip.loadAsync(await readFile(out('styled.docx')))
+    )
+      .file('word/document.xml')
+      ?.async('string')) as string;
+    // b before color before sz, as the schema requires.
+    expect(xml).toMatch(
+      /<w:rPr><w:b\/><w:bCs\/><w:color w:val="C00000"\/><w:sz w:val="28"\/><w:szCs w:val="28"\/><\/w:rPr><w:t[^>]*>\[?InvoiceHeader\/@InvoiceId/,
+    );
+    expect(xml).toContain('<w:jc w:val="right"/>');
+    await expect(
+      editTemplate(fixture, [{ op: 'set_style', anchor: { element: '#102' } }], { outputPath: out('x.docx') }),
+    ).rejects.toThrow(/at least one/);
+  });
+
   it('adds a table column with header and value, keeping the grid consistent', async () => {
     const list = await listOf(invoice);
     const itemField = list?.childIds[0];
