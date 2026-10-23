@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: d365fo-mcp-server (X++, metadata, labels)
+    url: https://github.com/dynamics365ninja/d365fo-mcp-server
+    about: Questions about the X++ side belong to the companion server.

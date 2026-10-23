@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: create-delivery-note
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  DeliveryNote.docx is a new, valid Docentric template using the data sources of SalesInvoice.docx: company name at
+  the top, the customer, a table repeating InvoiceLines with item, description and quantity and no prices, and a
+  "Received by" line at the bottom.

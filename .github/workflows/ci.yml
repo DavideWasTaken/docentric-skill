@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        node: [18, 22, 24]
+        exclude:
+          - os: windows-latest
+            node: 18
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      - name: Bundled script is up to date
+        if: matrix.node == 22
+        run: |
+          npm run build
+          git diff --exit-code -- skills/docentric/scripts
+      - run: npm run test:run
+      - name: Skill script smoke test (no node_modules needed)
+        run: |
+          node skills/docentric/scripts/docentric.mjs doctor
+          node skills/docentric/scripts/docentric.mjs validate examples/SalesInvoice.docx
+          node skills/docentric/scripts/docentric.mjs preview examples/SalesInvoice.docx --out out --formats html,docx
+          node skills/docentric/scripts/docentric.mjs convert-ssrs examples/ssrs/ConInvoice.AxReport.xml out/ConInvoice.docx
+      - run: npm run package

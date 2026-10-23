@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AxReport xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns="Microsoft.Dynamics.AX.Metadata.V2">
+  <Name>ConInvoice</Name>
+  <DataSets>
+    <AxReportDataSet xmlns=""><Name>ConInvoiceHeaderTmp</Name><DataSourceType>ReportDataProvider</DataSourceType>
+      <Fields><AxReportDataSetField><Name>InvoiceId</Name><Alias>Tmp.1.InvoiceId</Alias><DataType>System.String</DataType></AxReportDataSetField><AxReportDataSetField><Name>InvoiceDate</Name><Alias>Tmp.1.InvoiceDate</Alias><DataType>System.DateTime</DataType></AxReportDataSetField><AxReportDataSetField><Name>CustName</Name><Alias>Tmp.1.CustName</Alias><DataType>System.String</DataType></AxReportDataSetField><AxReportDataSetField><Name>CompanyLogo</Name><Alias>Tmp.1.CompanyLogo</Alias><DataType>System.Byte[]</DataType></AxReportDataSetField></Fields>
+    </AxReportDataSet>
+    <AxReportDataSet xmlns=""><Name>ConInvoiceLineTmp</Name><DataSourceType>ReportDataProvider</DataSourceType>
+      <Fields><AxReportDataSetField><Name>ItemGroup</Name><Alias>Tmp.1.ItemGroup</Alias><DataType>System.String</DataType></AxReportDataSetField><AxReportDataSetField><Name>ItemId</Name><Alias>Tmp.1.ItemId</Alias><DataType>System.String</DataType></AxReportDataSetField><AxReportDataSetField><Name>Name</Name><Alias>Tmp.1.Name</Alias><DataType>System.String</DataType></AxReportDataSetField><AxReportDataSetField><Name>LineAmount</Name><Alias>Tmp.1.LineAmount</Alias><DataType>System.Double</DataType></AxReportDataSetField></Fields>
+    </AxReportDataSet>
+  </DataSets>
+  <Designs>
+    <AxReportDesign xmlns="" i:type="AxReportPrecisionDesign"><Name>Report</Name><Text><![CDATA[<?xml version="1.0" encoding="utf-8"?>
+<Report xmlns="http://schemas.microsoft.com/sqlserver/reporting/2016/01/reportdefinition">
+  <ReportParameters>
+    <ReportParameter Name="AX_CompanyName"><DataType>String</DataType></ReportParameter>
+    <ReportParameter Name="DocumentTitle"><DataType>String</DataType></ReportParameter>
+  </ReportParameters>
+  <ReportSections><ReportSection>
+    <Body><ReportItems>
+      <Textbox Name="InvoiceId"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=First(Fields!InvoiceId.Value, "ConInvoiceHeaderTmp")</Value><Style><FontWeight>Bold</FontWeight><FontSize>14pt</FontSize></Style></TextRun></TextRuns></Paragraph></Paragraphs><Top>0in</Top><Left>0in</Left><Width>3in</Width><Height>0.25in</Height></Textbox>
+      <Textbox Name="InvoiceDate"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Format(First(Fields!InvoiceDate.Value, "ConInvoiceHeaderTmp"), "d")</Value><Style><TextAlign>Right</TextAlign></Style></TextRun></TextRuns></Paragraph></Paragraphs><Top>0in</Top><Left>4in</Left><Width>2in</Width><Height>0.25in</Height></Textbox>
+      <Textbox Name="Customer"><Paragraphs><Paragraph><TextRuns><TextRun><Value>="Bill to: " &amp; First(Fields!CustName.Value, "ConInvoiceHeaderTmp")</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs><Top>0.5in</Top><Left>0in</Left><Width>6in</Width><Height>0.25in</Height></Textbox>
+      <Textbox Name="Weird"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Code.FormatAddress(Fields!CustName.Value)</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs><Top>0.9in</Top><Left>0in</Left><Width>6in</Width><Height>0.25in</Height></Textbox>
+      <Image Name="Logo"><Source>Database</Source><Value>=First(Fields!CompanyLogo.Value, "ConInvoiceHeaderTmp")</Value>
+        <MIMEType>image/png</MIMEType><Top>1.2in</Top><Left>0in</Left><Width>1.5in</Width><Height>0.6in</Height></Image>
+      <Tablix Name="Lines">
+        <TablixBody>
+          <TablixColumns><TablixColumn><Width>1in</Width></TablixColumn><TablixColumn><Width>3in</Width></TablixColumn><TablixColumn><Width>1in</Width></TablixColumn></TablixColumns>
+          <TablixRows>
+            <TablixRow><Height>0.25in</Height><TablixCells><TablixCell><CellContents><Textbox Name="H1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Item</Value><Style><FontWeight>Bold</FontWeight></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell><TablixCell><CellContents><Textbox Name="H2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>@SYS7576</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell><TablixCell><CellContents><Textbox Name="H3"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Amount</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell></TablixCells></TablixRow>
+            <TablixRow><Height>0.25in</Height><TablixCells><TablixCell><CellContents><Textbox Name="G1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!ItemGroup.Value</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell><TablixCell><CellContents><Textbox Name="G2"><Paragraphs><Paragraph><TextRuns><TextRun><Value></Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell><TablixCell><CellContents><Textbox Name="G3"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!LineAmount.Value)</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell></TablixCells></TablixRow>
+            <TablixRow><Height>0.25in</Height><TablixCells><TablixCell><CellContents><Textbox Name="D1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!ItemId.Value</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell><TablixCell><CellContents><Textbox Name="D2"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!Name.Value</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell><TablixCell><CellContents><Textbox Name="D3"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Fields!LineAmount.Value</Value><Style><TextAlign>Right</TextAlign></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell></TablixCells></TablixRow>
+            <TablixRow><Height>0.25in</Height><TablixCells><TablixCell><CellContents><Textbox Name="T1"><Paragraphs><Paragraph><TextRuns><TextRun><Value>Total</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell><TablixCell><CellContents><Textbox Name="T2"><Paragraphs><Paragraph><TextRuns><TextRun><Value></Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell><TablixCell><CellContents><Textbox Name="T3"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Sum(Fields!LineAmount.Value)</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs></Textbox></CellContents></TablixCell></TablixCells></TablixRow>
+          </TablixRows>
+        </TablixBody>
+        <TablixRowHierarchy><TablixMembers>
+          <TablixMember><KeepWithGroup>After</KeepWithGroup></TablixMember>
+          <TablixMember><Group Name="ItemGroup"><GroupExpressions><GroupExpression>=Fields!ItemGroup.Value</GroupExpression></GroupExpressions></Group>
+            <TablixMembers><TablixMember/><TablixMember><Group Name="Details"/></TablixMember></TablixMembers></TablixMember>
+          <TablixMember><KeepWithGroup>Before</KeepWithGroup></TablixMember>
+        </TablixMembers></TablixRowHierarchy>
+        <DataSetName>ConInvoiceLineTmp</DataSetName>
+        <Top>2in</Top><Left>0in</Left><Width>5in</Width><Height>1in</Height>
+      </Tablix>
+    </ReportItems></Body>
+    <Page><PageHeader><ReportItems>
+      <Textbox Name="Company"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!AX_CompanyName.Value</Value><Style></Style></TextRun></TextRuns></Paragraph></Paragraphs><Top>0in</Top><Left>0in</Left><Width>3in</Width><Height>0.25in</Height></Textbox>
+      <Textbox Name="Title"><Paragraphs><Paragraph><TextRuns><TextRun><Value>=Parameters!DocumentTitle.Value</Value><Style><TextAlign>Right</TextAlign></Style></TextRun></TextRuns></Paragraph></Paragraphs><Top>0in</Top><Left>3in</Left><Width>3in</Width><Height>0.25in</Height></Textbox>
+    </ReportItems></PageHeader></Page>
+  </ReportSection></ReportSections>
+</Report>]]></Text></AxReportDesign>
+  </Designs>
+</AxReport>

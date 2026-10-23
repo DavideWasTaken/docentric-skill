@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: refuses-missing-field
+context:
+  scaffold_script: place-files.sh
+expected_outcome: |
+  The customer account number is not in the template data sources. The agent notices it, does not bind an invented
+  path, and explains that the field must be added in D365 (DSP / temp table in X++, then regenerate the DDSP and
+  update the data source) before it can be placed.

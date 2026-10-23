@@ -1,0 +1,32 @@
+name: Designer round-trip report
+description: You opened a template generated or edited by the docentric skill in the Docentric Designer — tell us how it went.
+labels: [designer-roundtrip]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you — this is the most useful feedback for the project.
+        **Do not attach real customer templates** (they contain personal sample data). Screenshots of the element tree are fine.
+  - type: dropdown
+    id: origin
+    attributes:
+      label: Where did the template come from?
+      options: [create (new template), edit, convert-ssrs, convert_placeholders]
+    validations: { required: true }
+  - type: dropdown
+    id: result
+    attributes:
+      label: Result in the Designer
+      options: [Opens and previews correctly, Opens with warnings, Does not open / error]
+    validations: { required: true }
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      placeholder: "docentric-skill 0.3.0, Docentric Designer 6.1.x, Word 365"
+    validations: { required: true }
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: Error messages, what looks wrong in the element tree, the spec or edit operations you used (synthetic data only).

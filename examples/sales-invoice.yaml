@@ -1,0 +1,119 @@
+# Example layout spec — a sales invoice for a fictitious company.
+# Create it with:   node skills/docentric/scripts/docentric.mjs create examples/sales-invoice.yaml examples/out/SalesInvoice.docx
+# Preview it with:  node skills/docentric/scripts/docentric.mjs preview examples/out/SalesInvoice.docx
+title: Sales invoice
+report:
+  id: SalesInvoice.Report
+  dspClass: ConSalesInvoiceDSP
+languages: [en-us, it]
+font: { name: Calibri, size: 10 }
+page: { size: A4, margins: 18 }
+
+labels:
+  Invoice:     { en-us: Invoice,       it: Fattura }
+  InvoiceNo:   { en-us: Invoice no.,   it: Fattura n. }
+  Date:        { en-us: Date,          it: Data }
+  Customer:    { en-us: Bill to,       it: Intestatario }
+  Item:        { en-us: Item,          it: Articolo }
+  Description: { en-us: Description,   it: Descrizione }
+  Qty:         { en-us: Qty,           it: Q.tà }
+  Price:       { en-us: Unit price,    it: Prezzo unitario }
+  Amount:      { en-us: Amount,        it: Importo }
+  Total:       { en-us: Total,         it: Totale }
+  Notes:       { en-us: Notes,         it: Note }
+  PaymentTerms: { en-us: Payment terms, it: Termini di pagamento }
+
+# No DDSP yet: the schema is declared (e.g. from the DSP temp tables read with d365fo-mcp).
+# The template is marked provisional until a real DDSP is imported.
+dataSources:
+  schema:
+    MainData:
+      root: ReportData
+      attributes: { IsWithAmount: boolean }
+      elements:
+        InvoiceHeader:
+          attributes:
+            InvoiceId: string
+            InvoiceDate: date
+            CustName: string
+            CustAddress: string
+            CurrencyCode: string
+            PaymTermDescription: string
+            Notes: string
+            CompanyLogo: base64Binary
+        InvoiceLines:
+          repeated: true
+          attributes:
+            ItemId: string
+            Name: string
+            Qty: decimal
+            SalesPrice: decimal
+            DiscPercent: decimal
+            LineAmount: decimal
+      # Optional: sample data shown by the preview (fictitious). Without it, values are generated.
+      sample: >-
+        <ReportData IsWithAmount="true">
+        <InvoiceHeader InvoiceId="INV-2026-0042" InvoiceDate="2026-10-23" CustName="Fabrikam Industries"
+        CustAddress="12 Harbour Road, Bristol BS1 4XX" CurrencyCode="EUR" PaymTermDescription="30 days end of month"
+        Notes="Goods remain our property until paid in full." CompanyLogo=""/>
+        <InvoiceLines ItemId="A-1001" Name="Ergonomic office chair" Qty="4" SalesPrice="189.00" DiscPercent="5" LineAmount="718.20"/>
+        <InvoiceLines ItemId="B-2040" Name="Standing desk 160x80" Qty="2" SalesPrice="459.00" DiscPercent="0" LineAmount="918.00"/>
+        <InvoiceLines ItemId="C-0007" Name="Monitor arm, dual" Qty="4" SalesPrice="79.50" DiscPercent="10" LineAmount="286.20"/>
+        </ReportData>
+    GeneralData:
+      root: GeneralData
+      elements:
+        CurrentCompany:
+          attributes: { Name: string, Address: string, VATNum: string, Phone: string }
+      sample: >-
+        <GeneralData><CurrentCompany Name="Contoso Office Supplies" Address="Via Roma 1, 20121 Milano"
+        VATNum="IT00000000000" Phone="+39 02 0000 0000"/></GeneralData>
+
+header:
+  - columns:
+      - - image: InvoiceHeader/@CompanyLogo
+          width: 35
+          height: 14
+      - - text: "{{GeneralData: CurrentCompany/@Name}}"
+          style: { bold: true, size: 12, align: right }
+        - text: "{{GeneralData: CurrentCompany/@Address}}"
+          style: { size: 8, align: right, color: "595959" }
+        - text: "VAT {{GeneralData: CurrentCompany/@VATNum}} · {{GeneralData: CurrentCompany/@Phone}}"
+          style: { size: 8, align: right, color: "595959" }
+
+body:
+  - heading: "{{label:Invoice}}"
+    level: 1
+  - columns:
+      - - text: "{{label:Customer}}"
+          style: { bold: true, size: 8, color: "7F7F7F" }
+        - text: "{{InvoiceHeader/@CustName}}"
+          style: { bold: true }
+        - text: "{{InvoiceHeader/@CustAddress}}"
+      - - grid:
+            - ["{{label:InvoiceNo}}", "{{InvoiceHeader/@InvoiceId}}"]
+            - ["{{label:Date}}", "{{InvoiceHeader/@InvoiceDate | d}}"]
+          widths: [1, 1]
+    widths: [3, 2]
+  - spacer: 6
+  - table:
+      rows: InvoiceLines
+      columns:
+        - { header: "{{label:Item}}",        value: "{{@ItemId}}",     width: 2 }
+        - { header: "{{label:Description}}", value: "{{@Name}}",       width: 5 }
+        - { header: "{{label:Qty}}",         value: "{{@Qty}}",        width: 1.2, align: right, format: n2 }
+        - { header: "{{label:Price}}",       value: "{{@SalesPrice}}", width: 1.6, align: right, format: n2 }
+        - { header: "{{label:Amount}}",      value: "{{@Qty * @SalesPrice}}", width: 1.8, align: right, format: n2 }
+      totals:
+        - - { text: "{{label:Total}} {{InvoiceHeader/@CurrencyCode}}", span: 4, style: { align: right } }
+          - "{{sum: @Qty * @SalesPrice | n2}}"
+      if: "@IsWithAmount"
+  - if: "InvoiceHeader/@Notes != ''"
+    then:
+      - text: "{{label:Notes}}"
+        style: { bold: true }
+      - text: "{{InvoiceHeader/@Notes}}"
+
+footer:
+  - text: "{{label:PaymentTerms}}: {{InvoiceHeader/@PaymTermDescription}}"
+    style: { size: 8, color: "595959", align: center }

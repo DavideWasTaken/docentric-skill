@@ -1,0 +1,20 @@
+{
+  "name": "docentric-skill",
+  "owner": { "name": "DavideWasTaken", "url": "https://github.com/DavideWasTaken" },
+  "metadata": {
+    "description": "Docentric AX report templates for Dynamics 365 F&O, as a Claude skill."
+  },
+  "plugins": [
+    {
+      "name": "docentric",
+      "source": "./",
+      "description": "Read, validate, preview, edit, create and convert (SSRS) Docentric AX report templates for Dynamics 365 Finance & Operations.",
+      "version": "0.3.0",
+      "author": { "name": "DavideWasTaken" },
+      "homepage": "https://github.com/DavideWasTaken/docentric-skill",
+      "license": "MIT",
+      "category": "productivity",
+      "keywords": ["docentric", "dynamics-365", "d365fo", "ssrs", "docx"]
+    }
+  ]
+}

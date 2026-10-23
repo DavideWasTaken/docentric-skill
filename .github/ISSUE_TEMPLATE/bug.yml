@@ -1,0 +1,18 @@
+name: Bug
+description: Something does not work as documented.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "**Never attach real customer templates.** Rebuild the problem with a synthetic template or a spec (see CONTRIBUTING.md)."
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, what did you expect?
+    validations: { required: true }
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: Command or tool call, spec / edit operations, output of `docentric-skill doctor`.
+    validations: { required: true }

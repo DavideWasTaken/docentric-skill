@@ -1,0 +1,18 @@
+name: Template not read correctly
+description: inspect/validate/preview misreads a template (unknown element, wrong binding context, false finding).
+labels: [format]
+body:
+  - type: markdown
+    attributes:
+      value: "Describe the structure, not the data: element types, binding expressions, the shape of the schema. **No real templates or sample data.**"
+  - type: input
+    id: version
+    attributes:
+      label: Docentric version (the "Docentric version" line printed by inspect)
+    validations: { required: true }
+  - type: textarea
+    id: what
+    attributes:
+      label: What was misread
+      description: The inspect/validate output (redacted) and what the Designer shows instead.
+    validations: { required: true }

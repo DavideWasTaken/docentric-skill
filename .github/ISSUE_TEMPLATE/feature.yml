@@ -1,0 +1,10 @@
+name: Feature request
+description: A tool, operation, block type or expression function you need.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What do you want to do?
+      description: The report change you were trying to make, in your own words.
+    validations: { required: true }

@@ -1,0 +1,10 @@
+{
+  "name": "docentric",
+  "version": "0.3.0",
+  "description": "Read, validate, preview, edit, create and convert (SSRS) Docentric AX report templates for Dynamics 365 Finance & Operations.",
+  "author": { "name": "DavideWasTaken", "url": "https://github.com/DavideWasTaken" },
+  "homepage": "https://github.com/DavideWasTaken/docentric-skill",
+  "repository": "https://github.com/DavideWasTaken/docentric-skill",
+  "license": "MIT",
+  "keywords": ["docentric", "dynamics-365", "d365fo", "finance-and-operations", "ssrs", "word", "docx", "reports"]
+}

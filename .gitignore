@@ -1,0 +1,16 @@
+node_modules/
+dist/
+coverage/
+*.log
+
+# Real customer templates must never be committed: they embed sample data
+# (names, addresses, VAT numbers) and tenant sensitivity labels.
+# Keep them in a local folder outside the repo, or here (ignored).
+private/
+*.ddsp
+fixtures/out/
+out/
+*.preview.docx
+*.preview.html
+*.preview.pdf
+*.preview.png

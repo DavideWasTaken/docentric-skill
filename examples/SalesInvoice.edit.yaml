@@ -1,0 +1,24 @@
+# Edit operations for examples/SalesInvoice.docx (element ids from: node skills/docentric/scripts/docentric.mjs inspect examples/SalesInvoice.docx)
+# node skills/docentric/scripts/docentric.mjs edit examples/SalesInvoice.docx examples/SalesInvoice.edit.yaml --out examples/out/SalesInvoice.edited.docx --preview
+- op: set_label
+  code: Discount
+  texts:
+    en-us: Disc. %
+    it: Sconto %
+- op: add_column
+  list: "#2112799399"
+  after: "#2108666687"
+  header: "{{label:Discount}}"
+  value: "{{@DiscPercent}}"
+  width: 0.8
+  align: right
+  format: n1
+- op: insert
+  anchor:
+    element: "#2551974545"
+  position: after
+  blocks:
+    - text: Thank you for your business, {{InvoiceHeader/@CustName}}.
+      style:
+        italic: true
+        color: "595959"

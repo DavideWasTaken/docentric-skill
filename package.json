@@ -1,0 +1,60 @@
+{
+  "name": "docentric-skill",
+  "version": "0.3.0",
+  "description": "Claude skill to inspect, validate, preview, edit, create and convert (SSRS) Docentric AX report templates for Dynamics 365 Finance & Operations",
+  "type": "module",
+  "keywords": [
+    "claude",
+    "claude-skill",
+    "claude-code",
+    "agent-skills",
+    "docentric",
+    "d365fo",
+    "dynamics-365",
+    "finance-and-operations",
+    "ssrs",
+    "word",
+    "docx",
+    "report"
+  ],
+  "author": "DavideWasTaken",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DavideWasTaken/docentric-skill.git"
+  },
+  "homepage": "https://github.com/DavideWasTaken/docentric-skill#readme",
+  "bugs": {
+    "url": "https://github.com/DavideWasTaken/docentric-skill/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "node scripts/build-skill.mjs",
+    "cli": "tsx src/main.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
+    "format": "biome format --write",
+    "format:check": "biome format .",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "examples": "tsx scripts/make-examples.ts",
+    "package": "node scripts/package-skill.mjs"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.12",
+    "jszip": "^3.10.2",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.2",
+    "@types/node": "^26.6.5",
+    "esbuild": "^0.28.2",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
+  },
+  "private": true
+}

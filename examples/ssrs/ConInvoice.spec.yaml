@@ -1,0 +1,85 @@
+title: ConInvoice (Report)
+report:
+  id: ConInvoice.Report
+languages:
+  - en-us
+dataSources:
+  schema:
+    MainData:
+      root: ReportData
+      section: MainData
+      elements:
+        ConInvoiceHeaderTmp:
+          repeated: false
+          attributes:
+            InvoiceId: string
+            InvoiceDate: date
+            CustName: string
+            CompanyLogo: base64Binary
+        ConInvoiceLineTmp:
+          repeated: true
+          attributes:
+            ItemGroup: string
+            ItemId: string
+            Name: string
+            LineAmount: decimal
+    Parameters:
+      root: Parameters
+      section: Parameters
+      attributes:
+        DocumentTitle: string
+    GeneralData:
+      root: GeneralData
+      section: GeneralData
+      elements:
+        CurrentCompany:
+          attributes:
+            Name: string
+header:
+  - grid:
+      - - text: "{{GeneralData: CurrentCompany/@Name}}"
+        - text: "{{Parameters: @DocumentTitle}}"
+          style:
+            align: right
+    widths:
+      - 3
+      - 3
+    borders: false
+body:
+  - grid:
+      - - text: "{{ConInvoiceHeaderTmp/@InvoiceId}}"
+          style:
+            bold: true
+            size: 14
+        - text: "{{ConInvoiceHeaderTmp/@InvoiceDate | d}}"
+          style:
+            align: right
+    widths:
+      - 3
+      - 2
+    borders: false
+  - text: "Bill to: {{ConInvoiceHeaderTmp/@CustName}}"
+  - text: "⟦SSRS: =Code.FormatAddress(Fields!CustName.Value)⟧"
+  - image: ConInvoiceHeaderTmp/@CompanyLogo
+    width: 38
+    height: 15
+  - table:
+      rows: ConInvoiceLineTmp
+      columns:
+        - header: Item
+          value: "{{@ItemId}}"
+          width: 1
+        - header: "{{label:@SYS7576}}"
+          value: "{{@Name}}"
+          width: 3
+        - header: Amount
+          value: "{{@LineAmount}}"
+          width: 1
+          align: right
+      totals:
+        - - text: Total
+            span: 1
+          - text: ""
+            span: 1
+          - text: "{{sum: @LineAmount}}"
+            span: 1
